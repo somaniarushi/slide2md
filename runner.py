@@ -10,6 +10,7 @@ from text2markdown import text2markdown
 from compare_texts import compare_texts
 from detect_text import detect_text
 
+COS_SIM_THRESHOLD = 0.9
 
 if __name__ == "__main__" :
     if os.environ.get("OPENAI_API_KEY") is None:
@@ -85,7 +86,7 @@ if __name__ == "__main__" :
                 if not skip_compare:
                     if last_text is not None:
                         cos_sim = compare_texts(last_text, text)
-                        if cos_sim > 0.9:
+                        if cos_sim > COS_SIM_THRESHOLD:
                             last_text = text
                             continue
                     last_text = text
