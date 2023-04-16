@@ -3,26 +3,31 @@
 import sys
 import os
 import json
-import tqdm
-import openai
 import argparse
-import numpy as np
+
 from converter import convert_to_images
 from text2markdown import text2markdown
+from compare_texts import compare_texts
+from detect_text import detect_text
 
 
 if __name__ == "__main__" :
-    if len(sys.argv) < 2:
-        print("Please provide a file name")
+    if os.environ.get("OPENAI_API_KEY") is None:
+        print("Please set OpenAI API environment variable as 'API'")
+        sys.exit(1)
+
+    if os.environ.get("GOOGLE_APPLICATION_CREDENTIALS") is None:
+        print("Please set Google Cloud credentials environment variable (a file) as 'GOOGLE_APPLICATION_CREDENTIALS'")
         sys.exit(1)
 
     # use argparse to parse arguments
     parser = argparse.ArgumentParser()
     # check if the following flags exist --skip-convert, --skip-detect, --skip-markdown, all default false
-    parser.add_argument("filename")
-    parser.add_argument("--skip-convert", action="store_true", default=False)
-    parser.add_argument("--skip-detect", action="store_true", default=False)
-    parser.add_argument("--skip-markdown", action="store_true", default=False)
+    parser.add_argument("filename", help="File to convert to markdown")
+    parser.add_argument("--skip-convert", action="store_true", default=False, help="Skip converting pdf to images")
+    parser.add_argument("--skip-detect", action="store_true", default=False, help="Skip detecting text")
+    parser.add_argument("--skip-markdown", action="store_true", default=False, help="Skip converting text to markdown")
+    parser.add_argument("--skip-compare", action="store_true", default=True, help="Skip comparing text to last text")
 
     args = parser.parse_args()
 
@@ -30,6 +35,7 @@ if __name__ == "__main__" :
     skip_convert = args.skip_convert
     skip_detect = args.skip_detect
     skip_markdown = args.skip_markdown
+    skip_compare = args.skip_compare
 
     # if filename is not pdf, exit
     if not filename.endswith(".pdf"):
@@ -56,7 +62,8 @@ if __name__ == "__main__" :
                 continue
             # run gcloud command
             filename_no_ext = file.split(".")[0]
-            os.system(f"gcloud ml vision detect-text tmp/{file} > tmp/{filename_no_ext}.json")
+            detect_text(f"tmp/{file}", f"tmp/{filename_no_ext}.json")
+
 
     # get all files in tmp folder
     all_texts = []
@@ -75,23 +82,13 @@ if __name__ == "__main__" :
             data = json.load(f)
             try:
                 text = data["responses"][0]['fullTextAnnotation']['text']
-                if last_text is not None:
-                    # Create embeddings of text and last_text
-                    # If they are similar, do not convert to markdown
-                    text_embed = np.array(openai.Embedding.create(
-                        input = text,
-                        model="text-embedding-ada-002"
-                    )['data'][0]['embedding'])
-                    last_text_embed = np.array(openai.Embedding.create(
-                        input = last_text,
-                        model="text-embedding-ada-002"
-                    )['data'][0]['embedding'])
-                    # Compute cosine similarity
-                    cos_sim = np.dot(text_embed, last_text_embed) / (np.linalg.norm(text_embed) * np.linalg.norm(last_text_embed))
-                    if cos_sim > 0.9:
-                        last_text = None
-                        continue
-                last_text = None
+                if not skip_compare:
+                    if last_text is not None:
+                        cos_sim = compare_texts(last_text, text)
+                        if cos_sim > 0.9:
+                            last_text = text
+                            continue
+                    last_text = text
                 markdown = text2markdown(text)
                 markdowns.append(markdown)
             except:

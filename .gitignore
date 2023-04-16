@@ -161,3 +161,5 @@ cython_debug/
 .vscode/
 data/
 tmp/
+google_application_credentials.json
+access.json

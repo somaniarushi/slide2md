@@ -2,9 +2,20 @@ import sys
 import openai
 import os
 
-openai.api_key = os.environ["API"]
 
 def text2markdown(text, outfile = None):
+    """
+    Accepts a string of text and converts it to markdown. If outfile is provided, the markdown is written to the file. Otherwise,
+    the markdown is returned as a string.
+    This function uses the OpenAI API to convert text to markdown.
+
+    @param text: string of text to convert to markdown
+    @param outfile: file to write markdown to
+    @return: markdown as a string or None if outfile is provided
+    """
+
+    # Pass in google credentials "access.json"
+    openai.api_key = os.environ["OPENAI_API_KEY"]
     prolog = "Given this text extracted from slides, convert it to markdown. It is important to ensure that none of the information is lost."
 
     # If the text is too long, we need to split it into chunks
@@ -20,7 +31,7 @@ def text2markdown(text, outfile = None):
             engine="text-davinci-003",
             prompt=f"{prolog}\n\n{chunk}\n\n---",
             temperature=0,
-            max_tokens=150,
+            max_tokens=500,
             top_p=1,
             frequency_penalty=0,
             stop=["---"],
@@ -36,6 +47,7 @@ def text2markdown(text, outfile = None):
             f.write(response_text)
 
 
+################### TESTING #########################
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Please provide a file name")

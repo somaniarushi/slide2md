@@ -5,6 +5,13 @@ import os
 import pdf2image
 
 def convert_to_images(filename):
+	"""
+	Converts a pdf to images using the pdf2image library. The images are saved in a tmp folder.
+	If tmp folder does not exist, it will be created.
+	If there is a conflict with the tmp folder, the program will overwrite the files.
+	@param filename: the name of the pdf file
+	@return: None
+	"""
 	# open file for reading
 	infile = open(filename, "r")
 
@@ -31,6 +38,7 @@ def convert_to_images(filename):
 	# close file
 	infile.close()
 
+################## TESTING ##################
 if __name__ == "__main__":
 	# get name from command line
 	if len(sys.argv) < 2:

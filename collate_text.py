@@ -1,8 +1,16 @@
 import sys
 import os
 import json
+from deprecated import deprecated
 
+@deprecated(version="0.0.1", reason="Collating texts reduces final accuracy, each text should be cleaned invividually")
 def collate_texts(folder_name):
+    """
+    For every json file in folder_name, collate the text into a single file.
+    @param folder_name: The folder containing the json files
+
+    WARNING: The function uses every json file in the folder, so make sure there are no other json files in the folder.
+    """
     # get all files in folder
     files = os.listdir(folder_name)
 
@@ -19,6 +27,8 @@ def collate_texts(folder_name):
                 # loop through text annotations
                 output_file.write(data["responses"][0]['fullTextAnnotation']['text'])
 
+
+################## TESTING ##################
 if __name__ == "__main__":
     # get folder name from command line
     if len(sys.argv) < 2:
