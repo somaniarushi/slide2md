@@ -1,5 +1,5 @@
-# Slide2Text: Automatic Documentation Generation for Class Lectures
-An AI-powered slide-to-markdown file converter.
+# Slide2MD
+**Automatic Documentation Generation for Class Lectures** — An AI-powered slide-to-markdown file converter. 
 
 ## Running Locally
 1. Run the following command:
@@ -28,5 +28,5 @@ python3 runner.py --help
 
 If you want your tmp to be auto-deleted after the run, use the `--clean-up` flag.
 
-### Warning
+## Warning
 This project is a work-in-progress. In all honesty, it **does not work very well**. I would not recommend anyone use this for production or commercial purposes.
